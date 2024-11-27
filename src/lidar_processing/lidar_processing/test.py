@@ -6,12 +6,15 @@ import cv2
 
 def main():
     # File paths
-    lidar_file = "/home/user/lidar_camera_slam_ws/datasets/KITTI/2011_09_26/drive_long/velodyne_points/data/0000000000.bin"
-    image_file = "/home/user/lidar_camera_slam_ws/datasets/KITTI/2011_09_26/drive_long/image_02/data/0000000000.png"
+    img_no = "001"
+    lidar_file = "/home/user/lidar_camera_slam_ws/datasets/KITTI/2011_09_26/drive_long/velodyne_points/data/0000000"+img_no+".bin"
+    lidar_file = "/Users/toby/My Stuf/Sweden Uni Stuf/Exchange Semester/Autonomous Vehicles/Project/enhanced_icp/datasets/KITTI/velodyne_points/data/0000000"+img_no+".bin"
+    image_file = "/home/user/lidar_camera_slam_ws/datasets/KITTI/2011_09_26/drive_long/image_02/data/0000000"+img_no+".png"
+    image_file = "/Users/toby/My Stuf/Sweden Uni Stuf/Exchange Semester/Autonomous Vehicles/Project/enhanced_icp/datasets/KITTI/image_02/data/0000000"+img_no+".png"
 
     # Parse calibration files
-    cam_to_cam_data = parse_cam_to_cam()
-    T_velo_to_cam = parse_velo_to_cam()
+    cam_to_cam_data = parse_cam_to_cam("/Users/toby/My Stuf/Sweden Uni Stuf/Exchange Semester/Autonomous Vehicles/Project/enhanced_icp/datasets/KITTI/calib/calib_cam_to_cam.txt")
+    T_velo_to_cam = parse_velo_to_cam("/Users/toby/My Stuf/Sweden Uni Stuf/Exchange Semester/Autonomous Vehicles/Project/enhanced_icp/datasets/KITTI/calib/calib_velo_to_cam.txt")
 
     # Access parsed data
     K_02 = cam_to_cam_data["K_02"]
@@ -51,7 +54,7 @@ def visualize_projected_points(image, pixel_coords):
         if 0 <= u < image.shape[1] and 0 <= v < image.shape[0]:
             plt.plot(u, v, 'r.', markersize=0.5)
 
-    plt.title("LiDAR Points Projected onto Image")
+    # plt.title("LiDAR Points Projected onto Image")
     plt.show()
 
 

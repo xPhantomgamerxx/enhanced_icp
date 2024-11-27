@@ -13,7 +13,10 @@ def visualize_lidar(points):
 
 # Example usage
 def main():
+    img_no = "001"
     lidar_file = "/home/user/lidar_camera_slam_ws/datasets/KITTI/2011_09_26/drive_long/velodyne_points/data/0000000000.bin"
+    lidar_file = "/Users/toby/My Stuf/Sweden Uni Stuf/Exchange Semester/Autonomous Vehicles/Project/enhanced_icp/datasets/KITTI/velodyne_points/data/0000000"+img_no+".bin"
+
     lidar_points = load_lidar_data(lidar_file)
     print(f"Loaded {lidar_points.shape[0]} points")
     visualize_lidar(lidar_points)
