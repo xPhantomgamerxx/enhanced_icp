@@ -18,8 +18,8 @@ def main():
 
     # Access parsed data
     K_02 = cam_to_cam_data["K_02"]
-    P_rect_02 = cam_to_cam_data["P_rect_02"]
-    R_rect_00 = cam_to_cam_data["R_rect_00"]
+    R_rect = cam_to_cam_data["R_rect_02"]
+    P_rect = cam_to_cam_data["P_rect_02"]
 
     # Load LiDAR points
     lidar_points = load_lidar_data(lidar_file)
@@ -29,7 +29,7 @@ def main():
 
     # Project LiDAR points to image plane
     pixel_coords, valid_mask = project_lidar_to_image(
-        lidar_points_homogeneous, T_velo_to_cam, R_rect_00, P_rect_02
+        lidar_points_homogeneous, T_velo_to_cam, R_rect, P_rect
     )
 
     # Load image
