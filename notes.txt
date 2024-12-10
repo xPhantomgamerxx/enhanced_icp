@@ -1,0 +1,4 @@
+Given the high density of the projected points in your image, whole image processing is likely the better approach. Here's why:
+    Redundancy Reduction: You avoid redundant computation by generating the feature map once for the entire image.
+    Consistency: Features extracted from a global map are more consistent and better reflect the semantic structure of the scene.
+    Efficiency: Whole image processing leverages the efficiency of batch CNN inference, reducing computational overhead compared to point-wise inference.
