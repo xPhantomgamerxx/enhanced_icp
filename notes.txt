@@ -2,3 +2,9 @@ Given the high density of the projected points in your image, whole image proces
     Redundancy Reduction: You avoid redundant computation by generating the feature map once for the entire image.
     Consistency: Features extracted from a global map are more consistent and better reflect the semantic structure of the scene.
     Efficiency: Whole image processing leverages the efficiency of batch CNN inference, reducing computational overhead compared to point-wise inference.
+
+Your suggestion is excellent! 
+By using the OXTS transformations as the "ground truth," you can effectively benchmark your ICP implementation across different configurations (e.g., no semantic features vs. various levels of semantic features). 
+This approach allows you to quantify the performance improvement introduced by semantic features.
+
+Initial Semantic ICP is shit, with see figures

@@ -7,6 +7,9 @@ import cv2
 from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 from tensorflow.keras.mixed_precision import set_global_policy
 from tensorflow.keras.applications import MobileNetV2
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
 
 def generate_feature_map_dynamic(image, cnn_model):
     """
@@ -36,6 +39,7 @@ def generate_feature_map_dynamic(image, cnn_model):
     # Run the CNN to generate the feature map
     feature_map = cnn_model.predict(image_normalized, batch_size=1)[0]  # Remove batch dimension
     return feature_map, scale, pad_h, pad_w, new_h, new_w
+
 
 def map_features_to_lidar_dynamic(lidar_pixel_coords, feature_map, scale, pad_h, pad_w, original_image_shape):
     """
@@ -81,6 +85,7 @@ def map_features_to_lidar_dynamic(lidar_pixel_coords, feature_map, scale, pad_h,
         lidar_features[i] = feature_map[v_scaled, u_scaled, :]
 
     return lidar_features
+
 
 def enrich_lidar_points_with_semantics_dynamic(lidar_file, image_file, calib_data, cnn_model, verbose = False):
     """
@@ -128,3 +133,73 @@ def enrich_lidar_points_with_semantics_dynamic(lidar_file, image_file, calib_dat
     enriched_lidar_points = np.hstack((lidar_points[valid_mask, :3], lidar_features))
 
     return pixel_coords, valid_mask, enriched_lidar_points
+
+
+def visualize_semantic_features(features, timestep):
+    import matplotlib.pyplot as plt
+    plt.figure(figsize=(10, 5))
+    plt.title(f"Semantic Features for Timestep {timestep}")
+    plt.imshow(features, aspect='auto')
+    plt.colorbar()
+    plt.show()
+
+
+def visualize_transforms(points_t1, points_t2, imu_transform, icp_transform):
+    """
+    Visualize the original and transformed point clouds.
+
+    :param points_t1: Nx3 numpy array of the source points (timestep 1).
+    :param points_t2: Nx3 numpy array of the target points (timestep 2).
+    :param imu_transform: 4x4 numpy array (ground truth transform from IMU).
+    :param icp_transform: 4x4 numpy array (predicted transform from ICP).
+    """
+    # Apply IMU transform
+    points_t1_imu = (imu_transform @ np.hstack((points_t1, np.ones((points_t1.shape[0], 1)))).T).T[:, :3]
+
+    # Apply ICP transform
+    points_t1_icp = (icp_transform @ np.hstack((points_t1, np.ones((points_t1.shape[0], 1)))).T).T[:, :3]
+
+    fig = plt.figure(figsize=(10, 7))
+    ax = fig.add_subplot(111, projection='3d')
+    
+    # Plot original source points
+    ax.scatter(points_t1[:, 0], points_t1[:, 1], points_t1[:, 2], color='blue', s=1, label='Source (Timestep 1)')
+    
+    # Plot target points
+    ax.scatter(points_t2[:, 0], points_t2[:, 1], points_t2[:, 2], color='green', s=1, label='Target (Timestep 2)')
+    
+    # Plot IMU transformed points
+    ax.scatter(points_t1_imu[:, 0], points_t1_imu[:, 1], points_t1_imu[:, 2], color='red', s=1, label='IMU Transform')
+    
+    # Plot ICP transformed points
+    ax.scatter(points_t1_icp[:, 0], points_t1_icp[:, 1], points_t1_icp[:, 2], color='orange', s=1, label='ICP Transform')
+    
+    ax.set_title("Transform Visualization: IMU vs ICP")
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+    ax.legend()
+    plt.show()
+
+
+def visualize_trajectories(imu_trajectory, icp_trajectory):
+    """
+    Visualize the trajectories derived from IMU and ICP transforms.
+
+    :param imu_trajectory: Nx3 numpy array of ground truth trajectory (x, y, z).
+    :param icp_trajectory: Nx3 numpy array of ICP-predicted trajectory (x, y, z).
+    """
+    plt.figure(figsize=(10, 7))
+    
+    # Plot IMU trajectory
+    plt.plot(imu_trajectory[:, 0], imu_trajectory[:, 1], label='IMU Trajectory (GT)', color='red', marker='o', linestyle='--')
+    
+    # Plot ICP trajectory
+    plt.plot(icp_trajectory[:, 0], icp_trajectory[:, 1], label='ICP Trajectory', color='blue', marker='x', linestyle='-')
+    
+    plt.title("Trajectories: IMU (Ground Truth) vs ICP")
+    plt.xlabel("X")
+    plt.ylabel("Y")
+    plt.legend()
+    plt.grid(True)
+    plt.show()

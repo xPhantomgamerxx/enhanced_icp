@@ -3,53 +3,39 @@ from scipy.spatial.transform import Rotation as R
 
 def load_oxts(oxts_file):
     """
-    Parse KITTI oxts file to extract pose information.
+    Load OXTS data from a single-line file.
     
     :param oxts_file: str
         Path to the oxts file.
-    :return: list of dict
-        A list of dictionaries containing parsed pose information.
+    :return: numpy array
+        Array containing the parsed OXTS data.
     """
-    oxts_data = []
     with open(oxts_file, 'r') as f:
-        for line in f:
-            values = [float(x) for x in line.strip().split()]
-            oxts_data.append({
-                'lat': values[0],  # Latitude
-                'lon': values[1],  # Longitude
-                'alt': values[2],  # Altitude
-                'roll': values[3],  # Roll (radians)
-                'pitch': values[4],  # Pitch (radians)
-                'yaw': values[5],  # Yaw (radians)
-                'vx': values[6],  # Velocity x
-                'vy': values[7],  # Velocity y
-                'vz': values[8],  # Velocity z
-                'ax': values[9],  # Acceleration x
-                'ay': values[10],  # Acceleration y
-                'az': values[11],  # Acceleration z
-                # Include other fields as needed
-            })
-    return oxts_data
+        line = f.readline().strip()
+        values = np.array([float(x) for x in line.split()])
+    return values
 
-def pose_to_transform(pose):
+
+def pose_to_transform(oxts_data):
     """
-    Convert pose data to a 4x4 homogeneous transformation matrix.
+    Convert OXTS data to a 4x4 homogeneous transformation matrix.
     
-    :param pose: dict
-        A dictionary containing 'roll', 'pitch', 'yaw', 'lat', 'lon', 'alt'.
+    :param oxts_data: numpy array
+        Array containing the OXTS data.
+        Expected order: [lat, lon, alt, roll, pitch, yaw, ...].
     :return: np.ndarray
         4x4 homogeneous transformation matrix.
     """
     # Extract orientation (roll, pitch, yaw)
-    roll, pitch, yaw = pose['roll'], pose['pitch'], pose['yaw']
+
+    roll, pitch, yaw = oxts_data[3], oxts_data[4], oxts_data[5]
     
     # Compute rotation matrix from roll, pitch, and yaw
     rotation = R.from_euler('xyz', [roll, pitch, yaw]).as_matrix()
 
     # Extract position (latitude, longitude, altitude)
-    # NOTE: You may need to convert lat/lon to meters if necessary.
-    # For now, use them directly as x, y, z coordinates.
-    position = np.array([pose['lat'], pose['lon'], pose['alt']])
+    # You might want to convert lat/lon to Cartesian coordinates if needed
+    position = geodetic_to_ecef(oxts_data[0], oxts_data[1], oxts_data[2])
     
     # Construct the transformation matrix
     T = np.eye(4)
@@ -57,3 +43,28 @@ def pose_to_transform(pose):
     T[:3, 3] = position
     
     return T
+
+
+def geodetic_to_ecef(lat, lon, alt):
+    """
+    Convert geodetic coordinates to Earth-Centered Earth-Fixed (ECEF) coordinates.
+    Assumes WGS-84 ellipsoid.
+    """
+    # WGS-84 ellipsoid constants
+    a = 6378137.0  # Semi-major axis (meters)
+    f = 1 / 298.257223563  # Flattening
+    e2 = 2 * f - f**2  # Square of eccentricity
+
+    # Convert to radians
+    lat_rad = np.radians(lat)
+    lon_rad = np.radians(lon)
+
+    # Calculate N, the radius of curvature in the prime vertical
+    N = a / np.sqrt(1 - e2 * np.sin(lat_rad)**2)
+
+    # Convert to ECEF
+    x = (N + alt) * np.cos(lat_rad) * np.cos(lon_rad)
+    y = (N + alt) * np.cos(lat_rad) * np.sin(lon_rad)
+    z = ((1 - e2) * N + alt) * np.sin(lat_rad)
+
+    return np.array([x, y, z])

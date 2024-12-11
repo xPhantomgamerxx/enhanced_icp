@@ -3,10 +3,9 @@ from sklearn.neighbors import NearestNeighbors
 import open3d as o3d
 
 
-
-def icp(A, B, init_pose=None, max_iterations=20, tolerance=0.001, use_semantic_features=True):
+def icp(A, B, init_pose=None, max_iterations=20, tolerance=0.001, use_semantic_features=True, spatial_weight=1.0, semantic_weight=0.1, simple = True):
     """
-    Enhanced ICP to handle enriched points with semantic features.
+    Enhanced ICP to handle enriched points with semantic features and weighted contributions.
 
     Input:
         A: Nxm numpy array of source points (3D spatial + semantic features).
@@ -15,20 +14,33 @@ def icp(A, B, init_pose=None, max_iterations=20, tolerance=0.001, use_semantic_f
         max_iterations: Maximum number of iterations.
         tolerance: Convergence tolerance.
         use_semantic_features: If True, include semantic features in nearest neighbor matching.
+        spatial_weight: Weight for spatial dimensions (x, y, z).
+        semantic_weight: Weight for semantic dimensions.
     Output:
         T: Final homogeneous transformation matrix.
         distances: Euclidean distances of the nearest neighbor.
         i: Number of iterations to converge.
     """
-    assert A.shape == B.shape
-    m = A.shape[1]
+    # Ensure point clouds have the same size
+    if simple:
+        if A.shape != B.shape:
+            if A.shape[0] > B.shape[0]:
+                A = A[:B.shape[0], :]
+            else:
+                B = B[:A.shape[0], :]
+    elif not simple: 
+        if A.shape != B.shape:
+            points_t1 = A
+            points_t2 = B
+            A, B = match_points(points_t1, points_t2)
+    
 
+    m = A.shape[1]
     # Split spatial and semantic features
     A_spatial, A_features = A[:, :3], A[:, 3:]
     B_spatial, B_features = B[:, :3], B[:, 3:]
 
     # Initialize homogeneous coordinates for spatial alignment
-    
     src = np.ones((4, A.shape[0]))
     dst = np.ones((4, B.shape[0]))
     src[:3, :] = A_spatial.T
@@ -42,9 +54,15 @@ def icp(A, B, init_pose=None, max_iterations=20, tolerance=0.001, use_semantic_f
     for i in range(max_iterations):
         # Nearest neighbor search
         if use_semantic_features:
-            # Combine spatial and semantic features
-            combined_src = np.hstack((src[:3, :].T, A_features))
-            combined_dst = np.hstack((dst[:3, :].T, B_features))
+            # Combine and weight spatial and semantic features
+            combined_src = np.hstack((
+                spatial_weight * src[:3, :].T, 
+                semantic_weight * A_features
+            ))
+            combined_dst = np.hstack((
+                spatial_weight * dst[:3, :].T, 
+                semantic_weight * B_features
+            ))
             distances, indices = nearest_neighbor(combined_src, combined_dst)
         else:
             distances, indices = nearest_neighbor(src[:3, :].T, dst[:3, :].T)
@@ -65,6 +83,7 @@ def icp(A, B, init_pose=None, max_iterations=20, tolerance=0.001, use_semantic_f
     T, _, _ = best_fit_transform(A_spatial, src[:3, :].T)
 
     return T, distances, i
+
 
 def best_fit_transform(A, B):
     """
@@ -109,6 +128,7 @@ def best_fit_transform(A, B):
 
     return T, R, t
 
+
 def nearest_neighbor(src, dst):
     """
     Find the nearest (Euclidean) neighbor in dst for each point in src
@@ -127,7 +147,8 @@ def nearest_neighbor(src, dst):
     neigh.fit(dst)
     distances, indices = neigh.kneighbors(src, return_distance=True)
     return distances.ravel(), indices.ravel() 
-        
+
+
 def visualize_icp_results(source_points, target_points, transformed_source):
     source_cloud = o3d.geometry.PointCloud()
     target_cloud = o3d.geometry.PointCloud()
@@ -142,3 +163,24 @@ def visualize_icp_results(source_points, target_points, transformed_source):
     transformed_cloud.paint_uniform_color([0, 0, 1])  # Blue for transformed source
 
     o3d.visualization.draw_geometries([source_cloud, target_cloud, transformed_cloud])
+
+
+def match_points(source, target):
+    """
+    Match points from source to target using nearest neighbors.
+    
+    :param source: Nx3 or NxD numpy array (source point cloud).
+    :param target: Mx3 or MxD numpy array (target point cloud).
+    :return: Matched points from the larger point cloud.
+    """
+    if source.shape[0] > target.shape[0]:
+        larger, smaller = source, target
+    else:
+        larger, smaller = target, source
+
+    # Use nearest neighbors to downsample larger to match smaller
+    nn = NearestNeighbors(n_neighbors=1).fit(larger)
+    distances, indices = nn.kneighbors(smaller)
+    matched = larger[indices.flatten()]
+    
+    return smaller, matched

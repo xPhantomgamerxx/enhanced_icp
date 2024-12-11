@@ -1,7 +1,7 @@
 import numpy as np
 from load_lidar import *
 
-def parse_cam_to_cam(file_path="/home/user/lidar_camera_slam_ws/datasets/KITTI/2011_09_26/drive_long/calib/calib_cam_to_cam.txt"):
+def parse_cam_to_cam(file_path="/Users/toby/My Stuf/Sweden Uni Stuf/Exchange Semester/Autonomous Vehicles/Project/enhanced_icp/datasets/KITTI/calib/calib_cam_to_cam.txt"):
     """Parses the cam_to_cam calibration file from a file path."""
     data = {}
     with open(file_path, 'r') as f:
@@ -19,7 +19,7 @@ def parse_cam_to_cam(file_path="/home/user/lidar_camera_slam_ws/datasets/KITTI/2
                     data[key] = value
     return data
 
-def parse_imu_to_velo(file_path="/home/user/lidar_camera_slam_ws/datasets/KITTI/2011_09_26/drive_long/calib/calib_imu_to_velo.txt"):
+def parse_imu_to_velo(file_path="/Users/toby/My Stuf/Sweden Uni Stuf/Exchange Semester/Autonomous Vehicles/Project/enhanced_icp/datasets/KITTI/calib/calib_imu_to_velo.txt"):
     """Parses the imu_to_velo calibration file from a file path."""
     data = {}
     with open(file_path, 'r') as f:
@@ -36,7 +36,7 @@ def parse_imu_to_velo(file_path="/home/user/lidar_camera_slam_ws/datasets/KITTI/
     imu_to_velo[:3, 3] = T
     return imu_to_velo
 
-def parse_velo_to_cam(file_path="/home/user/lidar_camera_slam_ws/datasets/KITTI/2011_09_26/drive_long/calib/calib_velo_to_cam.txt"):
+def parse_velo_to_cam(file_path="/Users/toby/My Stuf/Sweden Uni Stuf/Exchange Semester/Autonomous Vehicles/Project/enhanced_icp/datasets/KITTI/calib/calib_velo_to_cam.txt"):
     """Parses the velo_to_cam calibration file from a file path."""
     data = {}
     with open(file_path, 'r') as f:
