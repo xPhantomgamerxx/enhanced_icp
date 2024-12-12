@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 
+
 def load_oxts(oxts_file):
     """
     Load OXTS data from a single-line file.

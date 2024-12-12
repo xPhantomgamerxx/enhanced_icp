@@ -5,8 +5,6 @@ from load_lidar import *
 from calib_parse import *
 import cv2
 from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
-from tensorflow.keras.mixed_precision import set_global_policy
-from tensorflow.keras.applications import MobileNetV2
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
@@ -87,7 +85,7 @@ def map_features_to_lidar_dynamic(lidar_pixel_coords, feature_map, scale, pad_h,
     return lidar_features
 
 
-def enrich_lidar_points_with_semantics_dynamic(lidar_file, image_file, calib_data, cnn_model, verbose = False):
+def enrich_lidar_points(lidar_file, image_file, calib_data, cnn_model, verbose = False):
     """
     Combines LiDAR points with semantic features from the image using whole image processing,
     dynamically handling non-square input images.

@@ -2,7 +2,15 @@ import numpy as np
 from load_lidar import *
 
 def parse_cam_to_cam(file_path="/Users/toby/My Stuf/Sweden Uni Stuf/Exchange Semester/Autonomous Vehicles/Project/enhanced_icp/datasets/KITTI/calib/calib_cam_to_cam.txt"):
-    """Parses the cam_to_cam calibration file from a file path."""
+    """
+    Parses the cam_to_cam calibration file from a file path
+
+    Input:
+        file_path: String of filepath
+
+    Output:
+        data: Dict of camera calibration data
+    """
     data = {}
     with open(file_path, 'r') as f:
         for line in f:
@@ -19,8 +27,17 @@ def parse_cam_to_cam(file_path="/Users/toby/My Stuf/Sweden Uni Stuf/Exchange Sem
                     data[key] = value
     return data
 
+
 def parse_imu_to_velo(file_path="/Users/toby/My Stuf/Sweden Uni Stuf/Exchange Semester/Autonomous Vehicles/Project/enhanced_icp/datasets/KITTI/calib/calib_imu_to_velo.txt"):
-    """Parses the imu_to_velo calibration file from a file path."""
+    """
+    Parses the imu_to_velo calibration file from a file path
+    
+    Input:
+        file_path: String of filepath
+
+    Output:
+        imu_to_velo: Translation matrix from IMU to Lidar
+    """
     data = {}
     with open(file_path, 'r') as f:
         for line in f:
@@ -36,8 +53,17 @@ def parse_imu_to_velo(file_path="/Users/toby/My Stuf/Sweden Uni Stuf/Exchange Se
     imu_to_velo[:3, 3] = T
     return imu_to_velo
 
+
 def parse_velo_to_cam(file_path="/Users/toby/My Stuf/Sweden Uni Stuf/Exchange Semester/Autonomous Vehicles/Project/enhanced_icp/datasets/KITTI/calib/calib_velo_to_cam.txt"):
-    """Parses the velo_to_cam calibration file from a file path."""
+    """
+    Parses the velo_to_cam calibration file from a file path
+
+    Input:
+        file_path: String of filepath
+
+    Output:
+        velo_to_cam: Translation matrix from velo to cam
+    """
     data = {}
     with open(file_path, 'r') as f:
         for line in f:
@@ -52,6 +78,7 @@ def parse_velo_to_cam(file_path="/Users/toby/My Stuf/Sweden Uni Stuf/Exchange Se
     velo_to_cam[:3, :3] = R
     velo_to_cam[:3, 3] = T
     return velo_to_cam
+
 
 def main():
     cam_to_cam_data = parse_cam_to_cam()

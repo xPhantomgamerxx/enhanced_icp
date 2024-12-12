@@ -11,9 +11,13 @@ from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 import time
 
+
 def load_calibration_data(debug = False):
     """
     Load camera and LiDAR calibration data.
+
+    Input:
+        debug: Bool to enable debug print lines
     """
     cam_to_cam_data = parse_cam_to_cam()
     velo_to_cam_matrix = parse_velo_to_cam()
@@ -30,6 +34,10 @@ def load_calibration_data(debug = False):
 def load_timestep_data(timestep, debug = False):
     """
     Load LiDAR, image, and OXTS data for a specific timestep.
+
+    Input:
+        timestep: The current timestep of image that is being processed 
+        debug: Bool to enable debug print lines
     """
     base_path = "/Users/toby/My Stuf/Sweden Uni Stuf/Exchange Semester/Autonomous Vehicles/Project/enhanced_icp/datasets/KITTI"
     lidar_file = f"{base_path}/velodyne_points/data/0000000{timestep}.bin"
@@ -61,13 +69,11 @@ def process_timestep(timestep, cnn_model, calibration_data, n_components=128, de
     # Extract calibration data
     cam_to_cam_data = calibration_data["cam_to_cam_data"]
     velo_to_cam_matrix = calibration_data["velo_to_cam_matrix"]
-
-    # Load timestep-specific data
-    lidar_file, image_file, oxts_data = load_timestep_data(timestep, debug)
-
-    # Extract calibration matrices
     rectification_matrix = cam_to_cam_data["R_rect_02"]
     projection_matrix = cam_to_cam_data["P_rect_02"]
+
+    # Load timestep-specific data
+    lidar_file, image_file, oxts_data = load_timestep_data(timestep, debug)    
 
     # Compute the initial pose from OXTS data
     init_pose = pose_to_transform(oxts_data)
@@ -91,7 +97,7 @@ def process_timestep(timestep, cnn_model, calibration_data, n_components=128, de
     enriched_points[:, 3:] = scaler.fit_transform(enriched_points[:, 3:])
 
     # Reduce dimensions using PCA
-    points_for_icp = perform_pca(enriched_points, n_components)
+    # points_for_icp = perform_pca(enriched_points, n_components)
 
     # Optionally visualize projected points
     if debug:
@@ -99,6 +105,7 @@ def process_timestep(timestep, cnn_model, calibration_data, n_components=128, de
         print(f"Enriched points shape: {enriched_points.shape}")
         print(f"Initial Pose Matrix:\n{init_pose}")
         print("Timestep Processed Successfully")
+    return enriched_points, init_pose
     return points_for_icp, init_pose
 
 
@@ -120,11 +127,15 @@ def icp_with_error_analysis(start_timestep, end_timestep, cnn_model, calibration
         # Compute ground truth relative transform from OXTS
         ground_truth_transform = np.linalg.inv((transform_t1)) @ (transform_t2)
 
+        # print(f"Ground Truth Transform for timestep {t} -> {t+1}:\n{ground_truth_transform}")
+
+        # visualize_icp_results(points_t1[:, :3], points_t2[:, :3], points_t1[:, :3])  # The third argument is just a placeholder for unaligned source
+
         # Perform ICP to get predicted relative transform
         predicted_transform, distances, iterations = icp(
             points_t1, points_t2, 
             init_pose=np.eye(4), max_iterations=20, tolerance=0.001, 
-            use_semantic_features=use_semantic_features, spatial_weight=spatial_weight, semantic_weight=semantic_weight, simple=True
+            use_semantic_features=use_semantic_features, spatial_weight=spatial_weight, semantic_weight=semantic_weight, simple=False
         )
 
         # Accumulate predicted transform to compute global pose

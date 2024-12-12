@@ -8,3 +8,5 @@ By using the OXTS transformations as the "ground truth," you can effectively ben
 This approach allows you to quantify the performance improvement introduced by semantic features.
 
 Initial Semantic ICP is shit, with see figures
+
+Dont use PCA, THIS WILL BREAK EVERYTHING

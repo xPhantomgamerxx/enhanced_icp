@@ -34,8 +34,6 @@ def icp(A, B, init_pose=None, max_iterations=20, tolerance=0.001, use_semantic_f
             points_t2 = B
             A, B = match_points(points_t1, points_t2)
     
-
-    m = A.shape[1]
     # Split spatial and semantic features
     A_spatial, A_features = A[:, :3], A[:, 3:]
     B_spatial, B_features = B[:, :3], B[:, 3:]
@@ -69,12 +67,13 @@ def icp(A, B, init_pose=None, max_iterations=20, tolerance=0.001, use_semantic_f
 
         # Compute best-fit transformation for spatial alignment
         T, _, _ = best_fit_transform(src[:3, :].T, dst[:3, indices].T)
-
+        print(f"Iteration {i}: Computed Transform:\n{T}")
         # Apply transformation to source points
         src = np.dot(T, src)
 
         # Check convergence
         mean_error = np.mean(distances)
+        print(f"Mean Error: {mean_error}")
         if np.abs(prev_error - mean_error) < tolerance:
             break
         prev_error = mean_error
@@ -90,12 +89,12 @@ def best_fit_transform(A, B):
     Calculates the least-squares best-fit transform that maps corresponding points A to B in m spatial dimensions
 
     Input:
-    A: Nxm numpy array of corresponding points
-    B: Nxm numpy array of corresponding points
-    Returns:
-    T: (m+1)x(m+1) homogeneous transformation matrix that maps A on to B
-    R: mxm rotation matrix
-    t: mx1 translation vector
+        A: Nxm numpy array of corresponding points
+        B: Nxm numpy array of corresponding points
+    Output:
+        T: (m+1)x(m+1) homogeneous transformation matrix that maps A on to B
+        R: mxm rotation matrix
+        t: mx1 translation vector
     """
 
     assert A.shape == B.shape
@@ -150,6 +149,15 @@ def nearest_neighbor(src, dst):
 
 
 def visualize_icp_results(source_points, target_points, transformed_source):
+    """
+    Vizualizes the given point sets by a transformation 
+    
+    Input:
+        source_points: Nxm array of points red
+        target_points: Nxm array of points green
+        transformed_source: Nxm array of points blue
+    """
+
     source_cloud = o3d.geometry.PointCloud()
     target_cloud = o3d.geometry.PointCloud()
     transformed_cloud = o3d.geometry.PointCloud()
@@ -169,9 +177,11 @@ def match_points(source, target):
     """
     Match points from source to target using nearest neighbors.
     
-    :param source: Nx3 or NxD numpy array (source point cloud).
-    :param target: Mx3 or MxD numpy array (target point cloud).
-    :return: Matched points from the larger point cloud.
+    Input: 
+        :param source: Nx3 or NxD numpy array (source point cloud).
+        :param target: Mx3 or MxD numpy array (target point cloud).
+    Output:
+        :return: Matched points from the larger point cloud.
     """
     if source.shape[0] > target.shape[0]:
         larger, smaller = source, target

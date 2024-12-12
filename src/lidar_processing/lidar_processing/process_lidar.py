@@ -1,5 +1,7 @@
 import numpy as np
 import cv2
+import matplotlib.pyplot as plt
+
 
 def project_lidar_to_image(lidar_points, velo_to_cam, rectification, projection, verbose = False):
     """
@@ -48,6 +50,7 @@ def project_lidar_to_image(lidar_points, velo_to_cam, rectification, projection,
     # Return filtered pixel coordinates and valid mask
     return pixel_coords, valid_mask
 
+
 def visualize_projected_points(image_path, pixel_coords, valid_mask):
     """
     Visualize valid LiDAR points projected onto the image.
@@ -61,7 +64,6 @@ def visualize_projected_points(image_path, pixel_coords, valid_mask):
 
     :output: displays image with projected lidar points on it
     """
-    import matplotlib.pyplot as plt
 
     # Load the image
     image = cv2.imread(image_path)
