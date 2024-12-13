@@ -129,6 +129,16 @@ def enrich_lidar_points(lidar_file, image_file, calib_data, cnn_model, verbose =
 
     # Enrich valid LiDAR points
     enriched_lidar_points = np.hstack((lidar_points[valid_mask, :3], lidar_features))
+   
+    """# Map features to all LiDAR points
+    lidar_features = np.zeros((lidar_points.shape[0], feature_map.shape[-1]), dtype=np.float32)
+    valid_lidar_features = map_features_to_lidar_dynamic(
+        pixel_coords[valid_mask], feature_map, scale, pad_h, pad_w, image.shape
+    )
+    lidar_features[valid_mask] = valid_lidar_features  # Add valid features
+
+    # Combine LiDAR points with their features
+    enriched_lidar_points = np.hstack((lidar_points[:, :3], lidar_features))"""
 
     return pixel_coords, valid_mask, enriched_lidar_points
 

@@ -79,7 +79,7 @@ def process_timestep(timestep, cnn_model, calibration_data, n_components=128, de
     init_pose = pose_to_transform(oxts_data)
 
     # Enrich LiDAR points with semantic features
-    pixel_coords, valid_mask, enriched_points = enrich_lidar_points_with_semantics_dynamic(
+    pixel_coords, valid_mask, enriched_points = enrich_lidar_points(
         lidar_file,
         image_file,
         calib_data={

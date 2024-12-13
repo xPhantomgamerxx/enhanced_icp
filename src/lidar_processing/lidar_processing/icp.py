@@ -64,7 +64,6 @@ def icp(A, B, init_pose=None, max_iterations=20, tolerance=0.001, use_semantic_f
             distances, indices = nearest_neighbor(combined_src, combined_dst)
         else:
             distances, indices = nearest_neighbor(src[:3, :].T, dst[:3, :].T)
-
         # Compute best-fit transformation for spatial alignment
         T, _, _ = best_fit_transform(src[:3, :].T, dst[:3, indices].T)
         print(f"Iteration {i}: Computed Transform:\n{T}")
@@ -79,6 +78,7 @@ def icp(A, B, init_pose=None, max_iterations=20, tolerance=0.001, use_semantic_f
         prev_error = mean_error
 
     # Calculate final transformation
+    print(f"Mean Error: {mean_error}")
     T, _, _ = best_fit_transform(A_spatial, src[:3, :].T)
 
     return T, distances, i
