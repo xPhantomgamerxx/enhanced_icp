@@ -39,6 +39,7 @@ def icp_pipeline(start_frame, end_frame, base_path, max_iterations=100, toleranc
     global_trajectory = [np.eye(4)]
     imu_trajectory = [np.eye(4)]
     cumulative_transform = np.eye(4)
+    errors = []
 
     oxts_file_1 = f"{base_path}/oxts/data/{start_frame}.txt"
     initial_transform = oxts_to_global_transformation(oxts_file_1)
@@ -72,9 +73,9 @@ def icp_pipeline(start_frame, end_frame, base_path, max_iterations=100, toleranc
 
         # Run ICP
         print(f"Running ICP for frames {frame} -> {frame + 1}...")
-        predicted_transform, _, _ = icp(points_t1, points_t2, init_pose=np.eye(4),max_iterations=max_iterations, tolerance=tolerance,use_semantic_features=False, simple=True)
+        predicted_transform, mean_error, _ = icp(points_t1, points_t2, init_pose=np.eye(4),max_iterations=max_iterations, tolerance=tolerance,use_semantic_features=False, simple=True)
         cumulative_transform = cumulative_transform @ predicted_transform
-
+        errors.append(mean_error)
         # Accumulate transform for trajectory
         global_trajectory.append(global_trajectory[-1] @ predicted_transform)
         imu_trajectory.append(imu_trajectory[-1] @ ground_truth_transform)
@@ -89,6 +90,18 @@ def icp_pipeline(start_frame, end_frame, base_path, max_iterations=100, toleranc
     oxts_file_2 = f"{base_path}/oxts/data/{end_frame}.txt"
     end_transform = oxts_to_global_transformation(oxts_file_2)
     print("Final Transform: ", end_transform)
+
+    plt.figure(figsize=(10, 7))
+    # plt.plot(global_positions[:, 0], global_positions[:, 1], label="ICP Trajectory", color="blue", alpha=0.7)
+    # plt.plot(imu_positions[:, 0], imu_positions[:, 1], label="IMU Trajectory (GT)", color="red", alpha=0.7)
+    plt.bar(np.arange(len(errors)),errors, label="Distance Errors", color="blue", alpha=0.7)
+    plt.title("Trajectories: ICP vs IMU")
+    plt.xlabel("X")
+    plt.ylabel("Y")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
 
     final_ground_truth_transform = np.linalg.inv(initial_transform) @ end_transform
     points_t1 = load_lidar_data(f"{base_path}/velodyne_points/data/{start_frame}.bin")
@@ -129,8 +142,10 @@ def visualize_trajectories(global_trajectory, imu_trajectory):
     imu_positions = np.array(imu_positions)
 
     plt.figure(figsize=(10, 7))
+    # plt.plot(global_positions[:, 0], global_positions[:, 1], label="ICP Trajectory", color="blue", alpha=0.7)
+    # plt.plot(imu_positions[:, 0], imu_positions[:, 1], label="IMU Trajectory (GT)", color="red", alpha=0.7)
     plt.plot(global_positions[:, 0], global_positions[:, 1], label="ICP Trajectory", color="blue", alpha=0.7)
-    plt.plot(imu_positions[:, 0], imu_positions[:, 1], label="IMU Trajectory (GT)", color="red", alpha=0.7)
+    plt.plot(imu_positions[:, 0], imu_positions[:, 1], label="Trajectory", color="red", alpha=0.7)
     plt.title("Trajectories: ICP vs IMU")
     plt.xlabel("X")
     plt.ylabel("Y")
@@ -143,5 +158,5 @@ if __name__ == "__main__":
     # Example usage
     base_path = "/Users/toby/My Stuf/Sweden Uni Stuf/Exchange Semester/Autonomous Vehicles/Project/enhanced_icp/datasets/KITTI"
     timestep_1 = "0000000000"  # First timestep
-    timestep_2 = "0000000020"  # Second timestep
+    timestep_2 = "0000000010"  # Second timestep
     icp_pipeline(timestep_1, timestep_2, base_path, verbose=False)

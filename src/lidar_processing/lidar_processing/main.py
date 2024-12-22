@@ -91,13 +91,13 @@ def process_timestep(timestep, cnn_model, calibration_data, n_components=128, de
         verbose=debug,
     )
 
-    if debug: visualize_semantic_features(enriched_points[:, 3:], timestep)
+    visualize_semantic_features(enriched_points[:, 3:], timestep)
 
     scaler = StandardScaler()
     enriched_points[:, 3:] = scaler.fit_transform(enriched_points[:, 3:])
 
     # Reduce dimensions using PCA
-    # points_for_icp = perform_pca(enriched_points, n_components)
+    points_for_icp = perform_pca(enriched_points, n_components)
 
     # Optionally visualize projected points
     if debug:
@@ -135,7 +135,7 @@ def icp_with_error_analysis(start_timestep, end_timestep, cnn_model, calibration
         predicted_transform, distances, iterations = icp(
             points_t1, points_t2, 
             init_pose=np.eye(4), max_iterations=20, tolerance=0.001, 
-            use_semantic_features=use_semantic_features, spatial_weight=spatial_weight, semantic_weight=semantic_weight, simple=False
+            use_semantic_features=use_semantic_features, spatial_weight=spatial_weight, semantic_weight=semantic_weight, simple=True
         )
 
         # Accumulate predicted transform to compute global pose
@@ -205,9 +205,9 @@ def vizualize_results(results):
 def main():
     # Configuration
     start_timestep = "000"
-    end_timestep = "010"  # Adjust as needed
+    end_timestep = "020"  # Adjust as needed
     n_components = 32
-    use_semantic_features = False
+    use_semantic_features = True
     spatial_weight = 1.0
     semantic_weight = 0.1
     debug = False
@@ -221,7 +221,7 @@ def main():
     results = icp_with_error_analysis(start_timestep, end_timestep, cnn_model, calibration_data, n_components, use_semantic_features, spatial_weight, semantic_weight, debug)
 
     # Visualize errors as bar charts
-    # vizualize_results(results)
+    vizualize_results(results)
 
     # Visualize point clouds and trajectories
     imu_trajectory = [np.array([0, 0, 0])]
@@ -248,12 +248,12 @@ def main():
     visualize_trajectories(imu_trajectory, icp_trajectory)
 
     # Optionally visualize the last transform for point clouds
-    # points_t1, _ = process_timestep(start_timestep, cnn_model, n_components, debug)
-    # points_t2, _ = process_timestep(end_timestep, cnn_model, n_components, debug)
+    points_t1, _ = process_timestep(start_timestep, cnn_model, n_components, debug)
+    points_t2, _ = process_timestep(end_timestep, cnn_model, n_components, debug)
 
-    # visualize_transforms(points_t1[:, :3], points_t2[:, :3], 
-    #                      results[0]['ground_truth_transform'], 
-    #                      results[-1]['predicted_transform'])
+    visualize_transforms(points_t1[:, :3], points_t2[:, :3], 
+                         results[0]['ground_truth_transform'], 
+                         results[-1]['predicted_transform'])
 
 
 if __name__ == "__main__":

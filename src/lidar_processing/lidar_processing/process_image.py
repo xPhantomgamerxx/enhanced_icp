@@ -203,7 +203,7 @@ def visualize_trajectories(imu_trajectory, icp_trajectory):
     plt.plot(imu_trajectory[:, 0], imu_trajectory[:, 1], label='IMU Trajectory (GT)', color='red', marker='o', linestyle='--')
     
     # Plot ICP trajectory
-    plt.plot(icp_trajectory[:, 0], icp_trajectory[:, 1], label='ICP Trajectory', color='blue', marker='x', linestyle='-')
+    # plt.plot(icp_trajectory[:, 0], icp_trajectory[:, 1], label='ICP Trajectory', color='blue', marker='x', linestyle='-')
     
     plt.title("Trajectories: IMU (Ground Truth) vs ICP")
     plt.xlabel("X")

@@ -3,7 +3,7 @@ from sklearn.neighbors import NearestNeighbors
 import open3d as o3d
 
 
-def icp(A, B, init_pose=None, max_iterations=20, tolerance=0.001, use_semantic_features=True, spatial_weight=1.0, semantic_weight=0.1, simple = True):
+def icp(A, B, init_pose=None, max_iterations=20, tolerance=0.001, use_semantic_features=True, spatial_weight=1.0, semantic_weight=0.01, simple = True):
     """
     Enhanced ICP to handle enriched points with semantic features and weighted contributions.
 
@@ -81,7 +81,7 @@ def icp(A, B, init_pose=None, max_iterations=20, tolerance=0.001, use_semantic_f
     print(f"Mean Error: {mean_error}")
     T, _, _ = best_fit_transform(A_spatial, src[:3, :].T)
 
-    return T, distances, i
+    return T, mean_error, i
 
 
 def best_fit_transform(A, B):
